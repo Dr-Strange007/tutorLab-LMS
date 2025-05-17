@@ -1,0 +1,89 @@
+version: "3.9"
+services:
+  # database:
+  #   image: mysql:8.0
+  #   container_name: lms-db
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #     MYSQL_USER: ${DB_USERNAME}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
+
+
+  server:
+    build:
+      dockerfile: Dockerfile
+      context: ./api
+      # Only will build development stage from our dockerfile
+      #target: build
+    container_name: lms-backend
+    restart: always
+    env_file:
+      - ./api/.env
+    # Run a command against the development stage of the image
+    #command: npm run start:dev
+    ports:
+      - "${API_PORT}:8000"
+    volumes:
+      - ./public/uploads:/public/uploads
+    # depends_on:
+    #   - database
+    networks:
+      - lms_internal
+
+  website:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    command: 'npm start'
+    ports:
+      - ${WEBSITE_PORT}:3000
+    env_file:
+      - ./website/.env
+    networks:
+      - lms_internal
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   container_name: lms-adminer
+  #   ports:
+  #     - "${ADMINER_PORT}:8080"
+  #   networks:
+  #     - lms_internal
+
+  # dozzle:
+  #   container_name: dozzle
+  #   image: amir20/dozzle:latest
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 9999:8080
+#
+#  mongo:
+#    image: mongo:6-jammy
+#    container_name: ${PROJECT_NAME}-mongodb
+#    restart: always
+#    ports:
+#      - "27017:27017"
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=${MONGO_DB_USERNAME}
+#      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_DB_PASSWORD}
+#      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+#    volumes:
+#      - ./mongo-data:/data/db:rw
+#      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+#    command: mongod
+#    networks:
+#      - lms_internal
+
+volumes:
+  db_data:
+  pgadmin-data:
+
+networks:
+  lms_internal:
